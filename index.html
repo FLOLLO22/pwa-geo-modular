@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1e40af">
+  <meta name="description" content="PWA de reportes técnicos con geolocalización consciente y reutilizable.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="GeoReporte">
+  <title>GeoReporte · Geolocalización Consciente</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="encabezado">
+    <h1>GeoReporte</h1>
+    <p>Reporte técnico con ubicación opcional</p>
+  </header>
+
+  <main class="contenedor">
+    <section class="tarjeta">
+      <h2>Nuevo reporte técnico</h2>
+      <form id="form-reporte" novalidate>
+        <label for="titulo">Título del reporte</label>
+        <input id="titulo" name="titulo" type="text" placeholder="Ej. Falla en router del 2º piso" required>
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="3" placeholder="Describe el problema..."></textarea>
+
+        <button type="button" id="btn-adjuntar" class="boton boton-primario">
+          📍 Adjuntar mi ubicación
+        </button>
+
+        <div id="tarjeta-prepermiso" class="aviso aviso-info" hidden>
+          <h3>¿Por qué pedimos tu ubicación?</h3>
+          <p>
+            Necesitamos tu ubicación aproximada para <strong>adjuntar las coordenadas al reporte técnico</strong>
+            y <strong>calcular la sucursal más cercana</strong> que atenderá tu incidencia.
+          </p>
+          <p class="texto-pequeno">
+            Solo se lee una vez, cuando tú lo confirmas. No rastreamos tu ubicación en segundo plano.
+            Si prefieres no compartirla, puedes elegir tu zona manualmente.
+          </p>
+          <div class="fila-botones">
+            <button type="button" id="btn-confirmar-ubicacion" class="boton boton-primario">
+              Compartir mi ubicación
+            </button>
+            <button type="button" id="btn-prefiero-manual" class="boton boton-secundario">
+              Prefiero elegir mi zona
+            </button>
+          </div>
+        </div>
+
+        <div id="estado-cargando" class="aviso aviso-cargando" hidden>
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="texto-cargando">Obteniendo coordenadas...</span>
+        </div>
+
+        <div id="mensaje-error" class="aviso aviso-error" role="alert" hidden></div>
+
+        <div id="ayuda-permiso-denegado" class="aviso aviso-advertencia" hidden>
+          <h3>El permiso de ubicación está bloqueado</h3>
+          <p>No hay problema: puedes continuar eligiendo tu zona abajo. Si deseas reactivarlo:</p>
+          <ul>
+            <li><strong>Chrome (Android / PC):</strong> toca el ícono 🔒 junto a la dirección → <em>Permisos</em> → <em>Ubicación</em> → <em>Permitir</em> y recarga la página.</li>
+            <li><strong>Safari (iPhone):</strong> <em>Ajustes</em> → <em>Privacidad y seguridad</em> → <em>Localización</em> → <em>Sitios web de Safari</em> → <em>Preguntar</em>. Si usas la app instalada en inicio, su permiso es independiente del de Safari.</li>
+            <li><strong>Firefox:</strong> ícono 🔒 → <em>Borrar permisos</em> y recarga.</li>
+          </ul>
+        </div>
+
+        <div id="resultado-ubicacion" class="resultado" hidden>
+          <div class="resultado-cabecera">
+            <h3>Ubicación adjunta</h3>
+            <span id="insignia-precision" class="insignia"></span>
+          </div>
+          <dl class="datos">
+            <dt>Latitud</dt><dd id="dato-latitud">—</dd>
+            <dt>Longitud</dt><dd id="dato-longitud">—</dd>
+            <dt>Precisión (accuracy)</dt><dd><strong id="dato-precision">—</strong></dd>
+            <dt>Hora de lectura</dt><dd id="dato-hora">—</dd>
+          </dl>
+          <div class="barra-precision" aria-hidden="true"><div id="barra-relleno"></div></div>
+          <p id="explicacion-precision" class="texto-pequeno"></p>
+          <p class="texto-pequeno">
+            <a id="enlace-mapa" href="#" target="_blank" rel="noopener">Ver en mapa ↗</a>
+          </p>
+        </div>
+
+        <fieldset id="selector-manual" class="selector-manual" hidden>
+          <legend>Selecciona tu zona manualmente</legend>
+          <label for="select-zona">Ciudad / zona</label>
+          <select id="select-zona">
+            <option value="">— Elige una zona —</option>
+          </select>
+          <label for="direccion-manual">Dirección o referencia (opcional)</label>
+          <input id="direccion-manual" type="text" placeholder="Calle, número, colonia...">
+        </fieldset>
+
+        <div id="sucursal-cercana" class="aviso aviso-exito" hidden></div>
+
+        <button type="submit" class="boton boton-enviar">Enviar reporte</button>
+      </form>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Reportes generados</h2>
+      <p id="sin-reportes" class="texto-pequeno">Aún no has enviado reportes.</p>
+      <ul id="lista-reportes" class="lista-reportes"></ul>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Diagnóstico del entorno</h2>
+      <dl class="datos">
+        <dt>Contexto seguro (HTTPS)</dt><dd id="diag-https">—</dd>
+        <dt>API de Geolocalización</dt><dd id="diag-geo">—</dd>
+        <dt>Estado del permiso</dt><dd id="diag-permiso">—</dd>
+        <dt>Service Worker</dt><dd id="diag-sw">—</dd>
+        <dt>Plataforma detectada</dt><dd id="diag-plataforma">—</dd>
+      </dl>
+      <p id="diag-consejo" class="texto-pequeno"></p>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>Tema 6.3 · Geolocalización Consciente y Reutilizable · PWA en JavaScript Vanilla</p>
+  </footer>
+
+  <script src="./geo-helper.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

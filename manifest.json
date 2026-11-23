@@ -1,0 +1,12 @@
+{
+  "name": "GeoReporte - Geolocalización Consciente",
+  "short_name": "GeoReporte",
+  "description": "Reportes técnicos con geolocalización modular, pre-permiso y plan B manual.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e40af",
+  "lang": "es-MX"
+}
